@@ -18,6 +18,9 @@ npmDevDependencies in Compile += "webpack-merge" -> "4.1.4"
 libraryDependencies += "me.shadaj" %%% "slinky-web" % "0.5.1"
 libraryDependencies += "me.shadaj" %%% "slinky-hot" % "0.5.1"
 
+val circeVersion = "0.11.1"
+libraryDependencies += "io.circe" %% "circe-parser" % circeVersion
+
 libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.5" % Test
 
 scalacOptions += "-P:scalajs:sjsDefinedByDefault"
