@@ -1,5 +1,6 @@
 package nl.wwbakker.bookmarks.components
 
+import nl.wwbakker.bookmarks.data.SerializerDeserializer
 import nl.wwbakker.bookmarks.model._
 import slinky.core.Component
 import slinky.core.annotations.react
@@ -15,27 +16,27 @@ import org.scalajs.dom
     if (e.key == "Backspace") {
       setState(state.goBackUp)
     }else {
-      state.nodeWithShortcut(e.key)
-        .collect(categoryOnly)
+      state.categoryWithShortcut(e.key)
         .foreach(category => setState(state.drillDown(category)))
-    }
-  }
-  private def filterCategory(n : Node) : Option[Category] = n match {
-    case c : Category => Some(c)
-    case _ => None
-  }
 
-  private def categoryOnly : PartialFunction[Node, Category] = {
-    case c : Category => c
+      state.linkWithShortcut(e.key)
+        .map(_.href)
+        .foreach(dom.window.location.replace)
+
+    }
   }
 
   override def initialState: CurrentTreePosition = CurrentTreePosition.initial
 
-  def createCC(node: Node) : ReactElement =
-    CategoryComponent(node = node).withKey(state.nodeKey(node))
+  def createCategoryComponent(category: Category) : ReactElement =
+    CategoryComponent(category = category).withKey(category.key(state.currentPath))
+
+  def createLinkComponent(link: Link) : ReactElement =
+    LinkComponent(link = link).withKey(link.key(state.currentPath))
 
   override def render(): ReactElement = ul(
-    state.children.map(createCC)
+    state.categories.map(createCategoryComponent) ++
+      state.links.map(createLinkComponent)
   )
 }
 
@@ -43,20 +44,26 @@ import org.scalajs.dom
 case class CurrentTreePosition(root : Root,
                                currentPath : List[Category]) {
 
-  def nodeWithShortcut(shortcut : String) : Option[Node] =
-    children.find(_.shortcut.toUpperCase == shortcut.toUpperCase)
+  def categoryWithShortcut(shortcut : String) : Option[Category] =
+    categories.find(_.shortcut.toUpperCase == shortcut.toUpperCase)
 
-  def children : Seq[Node] =
+  def linkWithShortcut(shortcut : String) : Option[Link] =
+    links.find(_.shortcut.toUpperCase == shortcut.toUpperCase)
+
+  def categories : Seq[Category] =
     currentPath match {
       case Nil =>
-        root.children
+        root.categories
       case mostSpecificCategory :: _ =>
-        mostSpecificCategory.children
+        mostSpecificCategory.subCategories.getOrElse(Nil)
     }
 
-  def nodeKey(node : Node) : String =
-    currentPath.map(_.shortcut).mkString + node.shortcut
-
+  def links : Seq[Link] =
+    currentPath match {
+      case Nil => Nil
+      case mostSpecificCategory :: _ =>
+        mostSpecificCategory.links.getOrElse(Nil)
+    }
 
   def drillDown(toCategory : Category) : CurrentTreePosition =
     CurrentTreePosition(root, toCategory :: currentPath)
@@ -66,8 +73,14 @@ case class CurrentTreePosition(root : Root,
 }
 
 object CurrentTreePosition {
-  def initial = CurrentTreePosition(
-    Bookmarks.example,
-    Nil
-  )
+  def initial = {
+    SerializerDeserializer.default match {
+      case Left(error) => println("decode from json error", error)
+      case Right(result) => println("decode from json success", result)
+    }
+    CurrentTreePosition(
+      SerializerDeserializer.default.toOption.get,
+      Nil
+    )
+  }
 }
