@@ -21,6 +21,7 @@ import org.scalajs.dom
         .foreach {
           case category: Category => setState(state.drillDown(category))
           case link: Link => dom.window.location.replace(link.href)
+          case _ => ()
         }
 
     }
@@ -33,10 +34,15 @@ import org.scalajs.dom
 
 
 
-  override def render(): ReactElement =
-    html.div(html.className := "bookmark-navigator-component")(
-      state.nodesWithShortcuts.map{case (node, shortcut) => createTileComponent(node, shortcut)}
+  override def render(): ReactElement = {
+    val nodes = state.nodesWithShortcuts.map{case (node, shortcut) => createTileComponent(node, shortcut)}
+    html.div(html.className := "container-fluid bookmark-navigator-component mt-3 mb-3 h-100")(
+      nodes.grouped(nodes.length / 2).toSeq.map( row =>
+        html.div(html.className := "row h-25")(row:_*)
+      )
     )
+  }
+
 }
 
 object Shortcuts {
@@ -51,7 +57,7 @@ case class CurrentTreePosition(root : Root,
     nodesWithShortcuts.find(_._2 == shortcut.toUpperCase).map(_._1)
 
   def nodesWithShortcuts : Seq[(Node, String)] =
-    nodes.zip(Shortcuts.all)
+    nodes.padTo(Shortcuts.all.length, Empty).zip(Shortcuts.all)
 
   def nodes : Seq[Node] =
     currentPath match {

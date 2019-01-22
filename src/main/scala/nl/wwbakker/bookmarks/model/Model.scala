@@ -8,16 +8,19 @@ sealed trait Node {
 case class Category(caption: String,
                     nodes: Seq[Node],
                    ) extends Node {
-  def className = "category"
+  def className = "category border-warning"
 }
 
 case class Link(caption: String,
                 href: String,
                ) extends Node {
-  def className = "link"
+  def className = "link border-primary"
 }
 
-
+case object Empty extends Node {
+  def caption = ""
+  def className = "empty"
+}
 
 case class Root(categories: Seq[Category])
 
