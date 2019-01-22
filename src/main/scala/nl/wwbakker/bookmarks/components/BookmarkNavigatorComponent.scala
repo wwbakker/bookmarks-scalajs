@@ -16,7 +16,6 @@ import org.scalajs.dom
     if (e.key == "Backspace") {
       setState(state.goBackUp)
     }else {
-
       state.nodeWithShortcut(e.key)
         .foreach {
           case category: Category => setState(state.drillDown(category))
@@ -37,9 +36,9 @@ import org.scalajs.dom
   override def render(): ReactElement = {
     val nodes = state.nodesWithShortcuts.map{case (node, shortcut) => createTileComponent(node, shortcut)}
     html.div(html.className := "container-fluid bookmark-navigator-component mt-3 mb-3 h-100")(
-      nodes.grouped(nodes.length / 2).toSeq.map( row =>
-        html.div(html.className := "row h-25")(row:_*)
-      )
+      nodes.grouped(nodes.length / 2).toSeq.zipWithIndex.map { case (row, index) =>
+        html.div(html.className := "row h-25", html.key := s"card-row-$index")(row: _*)
+      }
     )
   }
 
@@ -50,8 +49,9 @@ object Shortcuts {
 }
 
 case class CurrentTreePosition(root : Root,
-                               currentPath : List[Category]) {
+                               categoryPath : List[Category]) {
 
+  private def currentCategory : Option[Category] = categoryPath.headOption
 
   def nodeWithShortcut(shortcut: String) : Option[Node] =
     nodesWithShortcuts.find(_._2 == shortcut.toUpperCase).map(_._1)
@@ -60,18 +60,13 @@ case class CurrentTreePosition(root : Root,
     nodes.padTo(Shortcuts.all.length, Empty).zip(Shortcuts.all)
 
   def nodes : Seq[Node] =
-    currentPath match {
-      case Nil =>
-        root.categories
-      case mostSpecificCategory :: _ =>
-        mostSpecificCategory.nodes
-    }
+    currentCategory.map(_.nodes).getOrElse(root.categories)
 
   def drillDown(toCategory : Category) : CurrentTreePosition =
-    CurrentTreePosition(root, toCategory :: currentPath)
+    CurrentTreePosition(root, toCategory :: categoryPath)
 
   def goBackUp : CurrentTreePosition =
-    CurrentTreePosition(root, currentPath.drop(1))
+    CurrentTreePosition(root, categoryPath.drop(1))
 }
 
 object CurrentTreePosition {
