@@ -5,7 +5,7 @@ import nl.wwbakker.bookmarks.model._
 import slinky.core.Component
 import slinky.core.annotations.react
 import slinky.core.facade.ReactElement
-import slinky.web.html.ul
+import slinky.web.html
 import org.scalajs.dom
 
 @react class BookmarkNavigatorComponent extends Component {
@@ -16,53 +16,49 @@ import org.scalajs.dom
     if (e.key == "Backspace") {
       setState(state.goBackUp)
     }else {
-      state.categoryWithShortcut(e.key)
-        .foreach(category => setState(state.drillDown(category)))
 
-      state.linkWithShortcut(e.key)
-        .map(_.href)
-        .foreach(dom.window.location.replace)
+      state.nodeWithShortcut(e.key)
+        .foreach {
+          case category: Category => setState(state.drillDown(category))
+          case link: Link => dom.window.location.replace(link.href)
+        }
 
     }
   }
 
   override def initialState: CurrentTreePosition = CurrentTreePosition.initial
 
-  def createCategoryComponent(category: Category) : ReactElement =
-    CategoryComponent(category = category).withKey(category.key(state.currentPath))
+  def createTileComponent(node: Node, shortcut: String) : ReactElement =
+    TileComponent(node = node, shortcut = shortcut).withKey(shortcut)
 
-  def createLinkComponent(link: Link) : ReactElement =
-    LinkComponent(link = link).withKey(link.key(state.currentPath))
 
-  override def render(): ReactElement = ul(
-    state.categories.map(createCategoryComponent) ++
-      state.links.map(createLinkComponent)
-  )
+
+  override def render(): ReactElement =
+    html.div(html.className := "bookmark-navigator-component")(
+      state.nodesWithShortcuts.map{case (node, shortcut) => createTileComponent(node, shortcut)}
+    )
 }
 
+object Shortcuts {
+  val all : Seq[String] = "QWERTASDFG".split("")
+}
 
 case class CurrentTreePosition(root : Root,
                                currentPath : List[Category]) {
 
-  def categoryWithShortcut(shortcut : String) : Option[Category] =
-    categories.find(_.shortcut.toUpperCase == shortcut.toUpperCase)
 
-  def linkWithShortcut(shortcut : String) : Option[Link] =
-    links.find(_.shortcut.toUpperCase == shortcut.toUpperCase)
+  def nodeWithShortcut(shortcut: String) : Option[Node] =
+    nodesWithShortcuts.find(_._2 == shortcut.toUpperCase).map(_._1)
 
-  def categories : Seq[Category] =
+  def nodesWithShortcuts : Seq[(Node, String)] =
+    nodes.zip(Shortcuts.all)
+
+  def nodes : Seq[Node] =
     currentPath match {
       case Nil =>
         root.categories
       case mostSpecificCategory :: _ =>
-        mostSpecificCategory.subCategories.getOrElse(Nil)
-    }
-
-  def links : Seq[Link] =
-    currentPath match {
-      case Nil => Nil
-      case mostSpecificCategory :: _ =>
-        mostSpecificCategory.links.getOrElse(Nil)
+        mostSpecificCategory.nodes
     }
 
   def drillDown(toCategory : Category) : CurrentTreePosition =
@@ -73,7 +69,7 @@ case class CurrentTreePosition(root : Root,
 }
 
 object CurrentTreePosition {
-  def initial = {
+  def initial: CurrentTreePosition = {
     SerializerDeserializer.default match {
       case Left(error) => println("decode from json error", error)
       case Right(result) => println("decode from json success", result)
