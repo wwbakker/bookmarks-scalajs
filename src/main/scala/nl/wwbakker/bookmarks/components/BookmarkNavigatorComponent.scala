@@ -49,9 +49,11 @@ object Shortcuts {
 }
 
 case class CurrentTreePosition(root : Root,
-                               categoryPath : List[Category]) {
+                               categoryPath : List[Category],
+                               /*tileIdPath : List[TileId]*/) {
 
   private def currentCategory : Option[Category] = categoryPath.headOption
+//  private def currentTileId : Option[TileId] = tileIdPath.headOption
 
   def nodeWithShortcut(shortcut: String) : Option[Node] =
     nodesWithShortcuts.find(_._2 == shortcut.toUpperCase).map(_._1)
@@ -60,7 +62,7 @@ case class CurrentTreePosition(root : Root,
     nodes.padTo(Shortcuts.all.length, Empty).zip(Shortcuts.all)
 
   def nodes : Seq[Node] =
-    currentCategory.map(_.nodes).getOrElse(root.categories)
+    currentCategory.map(_.nodes).getOrElse(root.nodes)
 
   def drillDown(toCategory : Category) : CurrentTreePosition =
     CurrentTreePosition(root, toCategory :: categoryPath)
