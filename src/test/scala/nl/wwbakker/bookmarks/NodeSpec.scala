@@ -47,6 +47,6 @@ class NodeSpec extends FlatSpec with Matchers {
   }
 
   "atSpec" should "work correctly" in {
-    Bookmarks.example.withNodeReplacedAt(TileId.list.head, Bookmarks.duckDuckGoLink) shouldBe Bookmarks.exampleReplaced
+    Bookmarks.example.withNodeReplacedAt(List(TileId.list.head, TileId.list.head), Bookmarks.duckDuckGoLink) shouldBe Bookmarks.exampleReplaced
   }
 }

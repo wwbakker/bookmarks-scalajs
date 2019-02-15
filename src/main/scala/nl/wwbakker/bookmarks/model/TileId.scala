@@ -9,10 +9,20 @@ object TileId {
 
   implicit class TileIdSeqHelper[A](val seq : Seq[A]) extends AnyVal {
     def replacedAt(tileId: TileId, replacementNode: A): Seq[A] =
-      seq.zipWithIndex.map {
-        case (_, index) if tileId.index == index => replacementNode
-        case (originalNode, _) => originalNode
+      seq.zipWithIndex.printValue.map { case (originalNode, index) =>
+        if (tileId.index == index)
+          replacementNode
+        else
+          originalNode
       }
+  }
+
+
+  implicit class PrintValueHelper[A](val a : A) extends AnyVal {
+    def printValue : A = {
+      System.out.println(a.toString)
+      a
+    }
   }
 }
 case class TileId(shortcut : String, index : Int)
