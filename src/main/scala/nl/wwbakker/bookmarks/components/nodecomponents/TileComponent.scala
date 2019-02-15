@@ -1,4 +1,4 @@
-package nl.wwbakker.bookmarks.components
+package nl.wwbakker.bookmarks.components.nodecomponents
 
 import nl.wwbakker.bookmarks.model.{Node, TileId}
 import slinky.core.StatelessComponent
@@ -18,3 +18,7 @@ import slinky.web.html
     )
 }
 
+object TileComponent {
+  def create(node: Node, tileId: TileId) : ReactElement =
+    TileComponent(node = node, tileId = tileId).withKey(tileId.shortcut)
+}

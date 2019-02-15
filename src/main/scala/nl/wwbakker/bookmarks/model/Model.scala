@@ -48,18 +48,23 @@ case object Empty extends Node {
   def className = "empty"
 }
 
-case class Root(nodes: Seq[Node]) {
+case class Root(nodes: Seq[Node]) extends Node {
+
+  override def caption: String = "root"
+
+  override def className: String = ""
+
   def withNodes(replacementNodes: Seq[Node]): Root = copy(replacementNodes)
 
-  def atPath(categoryIdPath: List[TileId]) : Node = categoryIdPath match {
+  override def atPath(categoryIdPath: List[TileId]) : Node = categoryIdPath match {
     case head :: rest => nodes(head.index).atPath(rest)
-    case _ => throw new IllegalArgumentException("Path is empty.")
+    case _ => this
   }
 
   def withNodeReplacedAt(tileId : TileId, replacementNode : Node) : Root =
     withNodes(replacementNodes = nodes.replacedAt(tileId, replacementNode))
 
-  def withNodeReplacedAt(tileIdPath : List[TileId], replacementNode : Node) : Root = tileIdPath match {
+  override def withNodeReplacedAt(tileIdPath : List[TileId], replacementNode : Node) : Root = tileIdPath match {
     case Nil => throw new IllegalStateException("Cannot replace node: Path points to the root.")
     case tileId :: Nil => withNodeReplacedAt(tileId, replacementNode)
     case tileId :: rest => withNodeReplacedAt(rest, nodes(tileId.index).withNodeReplacedAt(rest, replacementNode))
