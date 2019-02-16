@@ -1,5 +1,6 @@
 package nl.wwbakker.bookmarks.components.nodecomponents
 
+import nl.wwbakker.bookmarks.components.BookmarkNavigatorState
 import nl.wwbakker.bookmarks.model.{Empty, Node, Root, TileId}
 import org.scalajs.dom
 import org.scalajs.dom.raw.KeyboardEvent
@@ -9,23 +10,15 @@ import slinky.core.facade.ReactElement
 import slinky.web.html
 
 @react class RootViewerComponent extends StatelessComponent {
-  case class Props(root: Root, changePathHandler : List[TileId] => Unit) {
+  case class Props(root: Root) {
     def nodesWithId : Seq[(Node, TileId)] =
       root.nodes.padTo(TileId.list.length, Empty).zip(TileId.list)
   }
-
-  def handleKeydown : dom.Event => Unit = e => {
-    props.changePathHandler(List(TileId.fromShortcut(e.asInstanceOf[KeyboardEvent].key)))
-  }
-
 
   override def render(): ReactElement = {
     val nodes = props.nodesWithId.map{case (node, tileId) => TileComponent.create(node, tileId)}
     html.div(
       html.className := "container-fluid tile-viewer mt-3 mb-3 h-100",
-      html.tabIndex := 0,
-      html.onKeyDown := handleKeydown,
-//      html.autoFocus()
     )(
       nodes.grouped(nodes.length / 2).toSeq.zipWithIndex.map { case (row, index) =>
         html.div(html.className := "row h-25", html.key := s"card-row-$index")(row: _*)
@@ -35,5 +28,11 @@ import slinky.web.html
 }
 
 object RootViewerComponent {
-  def create(root: Root, changePathHandler : List[TileId] => Unit) = RootViewerComponent(root, changePathHandler) : ReactElement
+  def create(root: Root) : ReactElement = RootViewerComponent(root) : ReactElement
+
+  def keyboardDownStateChange(initialState : BookmarkNavigatorState, e : KeyboardEvent) : BookmarkNavigatorState =
+    if (e.key == "Backspace")
+      initialState.copy(tileIdPath = initialState.tileIdPath.drop(1))
+    else
+      initialState.copy(tileIdPath = initialState.tileIdPath :+ TileId.fromShortcut(e.key))
 }

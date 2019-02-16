@@ -42,3 +42,8 @@ webpackBundlingMode in fastOptJS := BundlingMode.LibraryOnly()
 requiresDOM in Test := true
 
 addCommandAlias("dev", ";fastOptJS::startWebpackDevServer;~fastOptJS")
+
+//scalaJSLinkerConfig := {
+//  val fastOptJSURI = (artifactPath in (Compile, fastOptJS)).value.toURI
+//  scalaJSLinkerConfig.value.withRelativizeSourceMapBase(Some(fastOptJSURI))
+//}
