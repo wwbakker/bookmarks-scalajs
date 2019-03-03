@@ -31,8 +31,5 @@ object RootViewerComponent {
   def create(root: Root) : ReactElement = RootViewerComponent(root) : ReactElement
 
   def keyboardDownStateChange(initialState : BookmarkNavigatorState, e : KeyboardEvent) : BookmarkNavigatorState =
-    if (e.key == "Backspace")
-      initialState.copy(tileIdPath = initialState.tileIdPath.drop(1))
-    else
       initialState.copy(tileIdPath = initialState.tileIdPath :+ TileId.fromShortcut(e.key))
 }

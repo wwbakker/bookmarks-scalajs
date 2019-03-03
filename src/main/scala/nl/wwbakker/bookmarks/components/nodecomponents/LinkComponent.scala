@@ -24,7 +24,7 @@ object LinkComponent {
 
   def keyboardDownStateChange(initialState : BookmarkNavigatorState, e : KeyboardEvent, node : Link) : BookmarkNavigatorState =
     if (e.key == "Backspace")
-      initialState.copy(tileIdPath = initialState.tileIdPath.drop(1))
+      initialState.copy(tileIdPath = initialState.tileIdPath.dropRight(1))
     else {
       if (e.key == "Enter") {
         dom.window.location.replace(node.href)

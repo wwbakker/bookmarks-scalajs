@@ -27,6 +27,7 @@ import org.scalajs.dom.raw.KeyboardEvent
 
   override def render(): ReactElement =
     html.div(html.className := "container-fluid tile-viewer mt-3 mb-3 h-100")(
+      PathViewerComponent.create(state.tileIdPath),
       state.root.atPath(state.tileIdPath) match {
         case c: Category => CategoryViewerComponent.create(state.tileIdPath, c)
         case r: Root => RootViewerComponent.create(r)
