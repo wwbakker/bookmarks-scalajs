@@ -37,5 +37,5 @@ object CategoryViewerComponent {
     if (e.key == "Backspace")
       initialState.copy(tileIdPath = initialState.tileIdPath.dropRight(1))
     else
-      initialState.copy(tileIdPath = initialState.tileIdPath :+ TileId.fromShortcut(e.key))
+      TileId.fromShortcut(e.key).map(tileId => initialState.copy(tileIdPath = initialState.tileIdPath :+ tileId)).getOrElse(initialState)
 }

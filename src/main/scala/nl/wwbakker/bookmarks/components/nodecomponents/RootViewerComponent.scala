@@ -31,5 +31,5 @@ object RootViewerComponent {
   def create(root: Root) : ReactElement = RootViewerComponent(root) : ReactElement
 
   def keyboardDownStateChange(initialState : BookmarkNavigatorState, e : KeyboardEvent) : BookmarkNavigatorState =
-      initialState.copy(tileIdPath = initialState.tileIdPath :+ TileId.fromShortcut(e.key))
+    TileId.fromShortcut(e.key).map(tileId => initialState.copy(tileIdPath = initialState.tileIdPath :+ tileId)).getOrElse(initialState)
 }

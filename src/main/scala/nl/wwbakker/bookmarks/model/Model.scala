@@ -4,10 +4,10 @@ import TileId.TileIdSeqHelper
 sealed trait Node {
   def caption : String
   def className : String
-  def atPath(tileIdPath : List[TileId]) : Node =
+  def atPath(tileIdPath : List[TileId]) : Option[Node] =
     tileIdPath match {
-      case Nil => this
-      case _ => throw new IllegalStateException("Cannot find node. Invalid path.")
+      case Nil => Some(this)
+      case _ => None
     }
   def withNodeReplacedAt(tileIdPath : List[TileId], replacementNode : Node) : Node =
     throw new IllegalStateException("Cannot replace node: Unable to find path.")
@@ -29,9 +29,9 @@ case class Category(caption: String,
 
   def withNodes(replacementNodes: Seq[Node]): Category = copy(nodes = replacementNodes)
 
-  override def atPath(tileIdPath : List[TileId]) : Node = tileIdPath match {
-    case Nil => this
-    case x :: xs => nodes(x.index).atPath(xs)
+  override def atPath(tileIdPath : List[TileId]) : Option[Node] = tileIdPath match {
+    case Nil => Some(this)
+    case x :: xs => nodes.lift(x.index).flatMap(_.atPath(xs))
   }
 //  def apply(tileId: TileId) : Option[Node] = if (nodes.isDefinedAt(tileId.index)) Some(nodes(tileId.index)) else None
 
@@ -56,9 +56,9 @@ case class Root(nodes: Seq[Node]) extends Node {
 
   def withNodes(replacementNodes: Seq[Node]): Root = copy(replacementNodes)
 
-  override def atPath(categoryIdPath: List[TileId]) : Node = categoryIdPath match {
-    case head :: rest => nodes(head.index).atPath(rest)
-    case _ => this
+  override def atPath(categoryIdPath: List[TileId]) : Option[Node] = categoryIdPath match {
+    case head :: rest => nodes.lift(head.index).flatMap(_.atPath(rest))
+    case _ => Some(this)
   }
 
   def withNodeReplacedAt(tileId : TileId, replacementNode : Node) : Root =
@@ -86,7 +86,8 @@ object Bookmarks {
               caption = "Bing",
               href = "https://www.bing.com"
             )
-          ))
+          ).padTo(TileId.list.length, Empty)
         )
+        ).padTo(TileId.list.length, Empty)
       )
 }

@@ -2,10 +2,11 @@ package nl.wwbakker.bookmarks.model
 
 object TileId {
   private val shortcuts : Seq[String] = "QWERTASDFG".split("")
+
   val list : Seq[TileId] =  shortcuts.zipWithIndex.map{ case (shortcut, index) => TileId.apply(shortcut, index)}
 
-  def fromShortcut(shortcut : String) : TileId =
-    list.find(_.shortcut == shortcut.toUpperCase).get
+  def fromShortcut(shortcut : String) : Option[TileId] =
+    list.find(_.shortcut == shortcut.toUpperCase)
 
   implicit class TileIdSeqHelper[A](val seq : Seq[A]) extends AnyVal {
     def replacedAt(tileId: TileId, replacementNode: A): Seq[A] =
